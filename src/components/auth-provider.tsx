@@ -134,7 +134,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           username: input.username?.trim().toLowerCase() || null,
           role: input.role,
         },
-        emailRedirectTo: `${window.location.origin}/login`,
+        // Back to the site they signed up on, signed in. Supabase only honours
+        // addresses on the project's Redirect URLs list and otherwise falls
+        // back to its Site URL, so every deployed domain must be listed there.
+        emailRedirectTo: `${window.location.origin}/auth/confirmed`,
       },
     })
 

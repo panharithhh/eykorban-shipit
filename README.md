@@ -129,9 +129,20 @@ user saying no, so it is swallowed rather than reported as a failure.
 
 ## Database
 
-`supabase/migrations/` holds the schema and every RLS policy;
-`supabase/seed.sql` loads demo content and ten working accounts
-(password `password123`). Run the migration first, then the seed.
+To set up a new Supabase project, paste `supabase/setup-new-project.sql` into
+the SQL Editor and run it. It is every file in `supabase/migrations/` (the
+schema and every RLS policy) in order, then `supabase/seed.sql` (demo content
+and ten working accounts, password `password123`), all in one transaction, so
+a failure changes nothing. It also drops the four sample tables from the
+team's earlier read-only schema, if they exist.
+
+The migrations and the seed are the source of truth. If you change one,
+rebuild `setup-new-project.sql` from them rather than editing it by hand.
+
+On Vercel, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` under
+Settings → Environment Variables for Production and Preview, then redeploy:
+Vite writes them into the bundle at build time, so a build made before they
+existed shows the setup screen.
 
 ## Known gaps
 

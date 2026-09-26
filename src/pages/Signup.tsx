@@ -54,7 +54,7 @@ const Signup = () => {
             <span className="font-medium text-foreground">
               {confirmationEmail}
             </span>
-            . Open it to finish setting up your account, then sign in.
+            . Open it and you'll come straight back here, signed in.
           </p>
           <Link
             to="/login"

@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase"
 import { PROFILE_COLUMNS } from "@/services/columns"
 import { unwrap } from "@/services/errors"
 import { toFreelancerProfile, toProjectCard, toUser } from "@/services/mappers"
+import { matchEveryWord } from "@/services/search"
 
 export interface CreativeSummary {
   user: User
@@ -49,17 +50,23 @@ function toCreative(row: ProfileJoin, includeDrafts: boolean): CreativeSummary {
   }
 }
 
-/** RLS hides profiles whose owner turned the public toggle off. */
+/**
+ * RLS hides profiles whose owner turned the public toggle off. `query`
+ * matches the display name or the username.
+ */
 export async function listPublicFreelancers(
-  categoryId?: string
+  categoryId?: string,
+  query?: string
 ): Promise<CreativeSummary[]> {
-  const rows = unwrap(
-    await supabase
-      .from("profiles")
-      .select(WITH_DETAIL)
-      .eq("role", "FREELANCER")
-      .returns<ProfileJoin[]>()
-  )
+  let request = supabase
+    .from("profiles")
+    .select(WITH_DETAIL)
+    .eq("role", "FREELANCER")
+
+  const matches = matchEveryWord(["name", "username"], query ?? "")
+  if (matches) request = request.or(matches)
+
+  const rows = unwrap(await request.returns<ProfileJoin[]>())
 
   let creatives = rows
     .map((row) => toCreative(row, false))

@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase"
 import { PROFILE_COLUMNS } from "@/services/columns"
 import { describeError, unwrap } from "@/services/errors"
 import { toProjectCard, toUser } from "@/services/mappers"
+import { matchEveryWord } from "@/services/search"
 
 export type PortfolioSort = "recent" | "oldest" | "likes" | "views" | "popular"
 
@@ -14,6 +15,8 @@ export interface PortfolioFilters {
   industryId?: string
   sort?: PortfolioSort
   limit?: number
+  /** Matches the title or subtitle. */
+  query?: string
 }
 
 export interface PortfolioListItem {
@@ -54,6 +57,9 @@ export async function listPublishedWork(
   if (isFiltered(filters.industryId)) {
     query = query.eq("industry_id", filters.industryId)
   }
+
+  const matches = matchEveryWord(["title", "subtitle"], filters.query ?? "")
+  if (matches) query = query.or(matches)
 
   switch (filters.sort) {
     case "oldest":

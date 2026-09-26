@@ -25,6 +25,7 @@ import Home from "@/pages/Home"
 // Lesson 7.6: one chunk per route instead of one chunk for the app. Home is
 // imported eagerly because it is the landing screen — lazy-loading the first
 // thing a visitor sees only delays it. Everything else loads on demand.
+const AuthConfirmed = lazy(() => import("@/pages/AuthConfirmed"))
 const FindWork = lazy(() => import("@/pages/FindWork"))
 const HireCreatives = lazy(() => import("@/pages/HireCreatives"))
 const JobDetail = lazy(() => import("@/pages/JobDetail"))
@@ -32,13 +33,12 @@ const JobEditor = lazy(() => import("@/pages/JobEditor"))
 const Login = lazy(() => import("@/pages/Login"))
 const MyJobs = lazy(() => import("@/pages/MyJobs"))
 const MyWork = lazy(() => import("@/pages/MyWork"))
-const PortfolioDetail = lazy(() =>
-  import("@/pages/PortfolioDetail").then((m) => ({ default: m.PortfolioDetail }))
-)
+const PortfolioDetail = lazy(() => import("@/pages/PortfolioDetail"))
 const ProjectDetail = lazy(() => import("@/pages/ProjectDetail"))
 const Projects = lazy(() => import("@/pages/Projects"))
 const Profile = lazy(() => import("@/pages/Profile"))
 const StartProject = lazy(() => import("@/pages/StartProject"))
+const Search = lazy(() => import("@/pages/Search"))
 const Signup = lazy(() => import("@/pages/Signup"))
 const WorkEditor = lazy(() => import("@/pages/WorkEditor"))
 
@@ -78,13 +78,7 @@ function WorkDetailRoute() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  return (
-    <PortfolioDetail
-      projectId={id}
-      onBack={() => navigate(-1)}
-      onSelectProject={(nextId) => navigate(`/work/${nextId}`)}
-    />
-  )
+  return <PortfolioDetail projectId={id} onBack={() => navigate(-1)} />
 }
 
 function ProfileRoute() {
@@ -128,12 +122,14 @@ export function App() {
         {/* Auth screens render without the app shell. */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/auth/confirmed" element={<AuthConfirmed />} />
 
         <Route element={<AppLayout />}>
           {/* Public — browsing never requires an account. */}
           <Route index element={<Home />} />
           <Route path="hire-creatives" element={<HireCreatives />} />
           <Route path="find-work" element={<FindWork />} />
+          <Route path="search" element={<Search />} />
           <Route path="jobs/:id" element={<JobDetail />} />
           <Route path="work/:id" element={<WorkDetailRoute />} />
           <Route path="profile" element={<Profile />} />

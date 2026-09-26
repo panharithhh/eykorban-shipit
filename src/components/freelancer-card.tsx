@@ -1,13 +1,14 @@
 import { Heart, ImageIcon, LayoutGrid } from "lucide-react"
 import { Link } from "react-router"
 
+import { useAuth } from "@/components/auth-provider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { formatCompact, getInitials } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { ProjectCard } from "@/interface/projectCard"
-import type { FreelancerProfile, User } from "@/interface/user"
+import { RoleName, type FreelancerProfile, type User } from "@/interface/user"
 
 const VISIBLE_SKILLS = 3
 
@@ -18,6 +19,11 @@ interface FreelancerCardProps {
 }
 
 export function FreelancerCard({ user, profile, works }: FreelancerCardProps) {
+  const { user: viewer } = useAuth()
+  // Projects run between a client and a freelancer, never two freelancers.
+  // Signed-out visitors keep the button: it leads to sign-in, and the
+  // start-project page turns away anyone who signs in as a freelancer.
+  const canStartProject = !viewer || viewer.role === RoleName.CLIENT
   const cover = works[0]?.coverImageUrl
   const profileHref = `/profile/${profile.username}`
   const totalLikes = works.reduce((sum, work) => sum + work.likeCount, 0)
@@ -98,14 +104,19 @@ export function FreelancerCard({ user, profile, works }: FreelancerCardProps) {
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div
+          className={cn(
+            "mt-4 grid gap-2",
+            canStartProject ? "grid-cols-2" : "grid-cols-1"
+          )}
+        >
           <Link
             to={profileHref}
             className={cn(buttonVariants({ variant: "outline" }), "rounded-lg")}
           >
             View profile
           </Link>
-          {works[0] ? (
+          {!canStartProject ? null : works[0] ? (
             <Link
               to={`/start-project/work/${works[0].id}`}
               className={cn(buttonVariants(), "rounded-lg")}
