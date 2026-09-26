@@ -29,18 +29,14 @@ const STEPS = [
   },
   {
     icon: FileCode2,
-    title: "Run the schema, then the seed",
+    title: "Run the database script",
     body: (
       <>
-        In the SQL Editor, run{" "}
+        In the SQL Editor, paste and run{" "}
         <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-          supabase/migrations/20260923000000_init.sql
-        </code>{" "}
-        first, then{" "}
-        <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-          supabase/seed.sql
+          supabase/setup-new-project.sql
         </code>
-        . Order matters — the seed needs the tables and the signup trigger.
+        . It creates every table and security rule, then loads the demo data.
       </>
     ),
   },
@@ -60,7 +56,8 @@ const STEPS = [
           sb_publishable_…
         </code>
         ) from Settings → API Keys. Restart the dev server afterwards — Vite
-        only reads env files at startup.
+        only reads env files at startup. On Vercel, add the same two under
+        Settings → Environment Variables instead, then redeploy.
       </>
     ),
   },
@@ -77,10 +74,9 @@ export function SupabaseSetupNotice() {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           The app reads its data from Supabase and cannot start without
-          credentials. Three steps, about ten minutes — the full walkthrough is
-          in{" "}
+          credentials. Three steps, about ten minutes — more detail is in{" "}
           <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-            SUPABASE.md
+            README.md
           </code>
           .
         </p>
