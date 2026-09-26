@@ -5,11 +5,14 @@ import { supabase } from "@/lib/supabase"
 import { PROFILE_COLUMNS } from "@/services/columns"
 import { describeError, unwrap } from "@/services/errors"
 import { toJob, toUser } from "@/services/mappers"
+import { matchEveryWord } from "@/services/search"
 
 export interface JobFilters {
   /** "all" or undefined means no filter. */
   categoryId?: string
   industryId?: string
+  /** Matches the title or description. */
+  query?: string
 }
 
 export interface JobListItem {
@@ -41,6 +44,9 @@ export async function listOpenJobs(
   if (isFiltered(filters.industryId)) {
     query = query.eq("industry_id", filters.industryId)
   }
+
+  const matches = matchEveryWord(["title", "description"], filters.query ?? "")
+  if (matches) query = query.or(matches)
 
   const rows = unwrap(
     await query

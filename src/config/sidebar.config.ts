@@ -58,8 +58,9 @@ export const sidebarConfigByRole: Partial<Record<RoleName, SidebarConfig>> = {
   [RoleName.CLIENT]: clientSidebarConfig,
 }
 
-/** Roles that are allowed to see the sidebar. */
-export const SIDEBAR_ROLES = new Set<RoleName>([
-  RoleName.FREELANCER,
-  RoleName.CLIENT,
-])
+/**
+ * Roles that are allowed to see the sidebar. Clients are left out: they have
+ * two pages of their own, which the header carries instead. The client config
+ * above still feeds the phone tab bar.
+ */
+export const SIDEBAR_ROLES = new Set<RoleName>([RoleName.FREELANCER])

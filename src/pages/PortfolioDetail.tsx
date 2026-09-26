@@ -2,6 +2,7 @@ import * as React from "react"
 import { Link } from "react-router"
 import { AlertTriangle } from "lucide-react"
 
+import { useAuth } from "@/components/auth-provider"
 import { EmptyState } from "@/components/empty-state"
 import { AuthorCard } from "@/components/portfolio-detail/author-card"
 import { CaseStudyCard } from "@/components/portfolio-detail/case-study-card"
@@ -20,7 +21,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useWorkDetail } from "@/hooks/use-work-detail"
 import type { ProjectCard } from "@/interface/projectCard"
-import type { User } from "@/interface/user"
+import { RoleName, type User } from "@/interface/user"
 import { cn } from "@/lib/utils"
 import type { PortfolioListItem } from "@/services/portfolio"
 
@@ -54,6 +55,9 @@ function PortfolioDetailView({
   const [isSaved, setIsSaved] = React.useState(false)
   const saveCount = work.likeCount + (isSaved ? 1 : 0)
 
+  const { user } = useAuth()
+  const canStartProject = !user || user.role === RoleName.CLIENT
+
   return (
     <div
       className={cn(
@@ -81,7 +85,11 @@ function PortfolioDetailView({
             <div className="sticky top-[120px] space-y-5">
               <WorkSummary work={work} saveCount={saveCount} />
               <AuthorCard author={author} stats={PLACEHOLDER_AUTHOR_STATS} />
-              <PackageCard workId={work.id} offer={PLACEHOLDER_PACKAGE} />
+              <PackageCard
+                workId={work.id}
+                offer={PLACEHOLDER_PACKAGE}
+                canStartProject={canStartProject}
+              />
             </div>
           </div>
         </div>

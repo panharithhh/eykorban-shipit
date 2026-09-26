@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { useLanguage } from "@/components/language-provider"
 import { sidebarConfigByRole } from "@/config/sidebar.config"
+import { RoleName } from "@/interface/user"
 import type { MessageKey } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
@@ -14,10 +15,19 @@ interface Tab {
   icon: LucideIcon
 }
 
-const PUBLIC_TABS: (Omit<Tab, "label"> & { label: MessageKey })[] = [
+type TabSpec = Omit<Tab, "label"> & { label: MessageKey }
+
+const PUBLIC_TABS: TabSpec[] = [
   { label: "tabs.explore", href: "/", icon: Compass },
   { label: "tabs.creatives", href: "/hire-creatives", icon: Search },
   { label: "tabs.jobs", href: "/find-work", icon: Briefcase },
+]
+
+// Same reasoning as the header: a client posts jobs rather than finding them.
+const CLIENT_TABS: TabSpec[] = [
+  { label: "tabs.explore", href: "/", icon: Compass },
+  { label: "tabs.creatives", href: "/hire-creatives", icon: Search },
+  { label: "tabs.myJobs", href: "/my-jobs", icon: Briefcase },
 ]
 
 /**
@@ -35,8 +45,10 @@ export function MobileNav() {
   // fourth tab, so the parts the sidebar owns stay reachable on a phone.
   const portalItem = user ? sidebarConfigByRole[user.role]?.groups[0]?.items[0] : undefined
 
+  const baseTabs = user?.role === RoleName.CLIENT ? CLIENT_TABS : PUBLIC_TABS
+
   const tabs: Tab[] = [
-    ...PUBLIC_TABS.map((tab) => ({ ...tab, label: t(tab.label) })),
+    ...baseTabs.map((tab) => ({ ...tab, label: t(tab.label) })),
     portalItem
       ? { label: portalItem.label, href: portalItem.href, icon: portalItem.icon }
       : { label: t("tabs.profile"), href: user ? "/profile" : "/login", icon: UserRound },

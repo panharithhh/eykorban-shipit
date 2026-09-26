@@ -14,10 +14,16 @@ export interface WorkPackage {
 interface PackageCardProps {
   workId: string
   offer: WorkPackage
+  /** False for freelancers: projects never run between two freelancers. */
+  canStartProject: boolean
 }
 
 /** The fixed-scope offer and the way into a project. */
-export function PackageCard({ workId, offer }: PackageCardProps) {
+export function PackageCard({
+  workId,
+  offer,
+  canStartProject,
+}: PackageCardProps) {
   return (
     <div className="relative space-y-4 overflow-hidden rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xs">
       <div className="absolute top-0 right-0 left-0 h-1 bg-primary" />
@@ -56,16 +62,22 @@ export function PackageCard({ workId, offer }: PackageCardProps) {
       <div className="space-y-2 pt-2">
         {/* STORY-004: the CTA is an entry point into STORY-014, not a dialog
             that collects details and drops them. */}
-        <Link
-          to={`/start-project/work/${workId}`}
-          className={cn(
-            buttonVariants(),
-            "h-10.5 w-full cursor-pointer gap-1.5 rounded-xl text-xs font-semibold shadow-xs transition-transform active:scale-[0.99]"
-          )}
-        >
-          <span>Start a project</span>
-          <ArrowRight className="size-3.5" />
-        </Link>
+        {canStartProject ? (
+          <Link
+            to={`/start-project/work/${workId}`}
+            className={cn(
+              buttonVariants(),
+              "h-10.5 w-full cursor-pointer gap-1.5 rounded-xl text-xs font-semibold shadow-xs transition-transform active:scale-[0.99]"
+            )}
+          >
+            <span>Start a project</span>
+            <ArrowRight className="size-3.5" />
+          </Link>
+        ) : (
+          <p className="rounded-xl bg-muted px-3 py-2.5 text-center text-xs text-muted-foreground">
+            Only client accounts can start a project.
+          </p>
+        )}
       </div>
     </div>
   )

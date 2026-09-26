@@ -9,15 +9,35 @@ import { Logo } from "@/components/logo"
 import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RoleName } from "@/interface/user"
 import { getInitials } from "@/lib/format"
 import type { MessageKey } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
-const navLinks: { label: MessageKey; href: string }[] = [
+type NavLink = { label: MessageKey; href: string }
+
+const publicLinks: NavLink[] = [
   { label: "nav.explore", href: "/" },
   { label: "nav.hireCreatives", href: "/hire-creatives" },
   { label: "nav.findWork", href: "/find-work" },
 ]
+
+// Clients have no sidebar, so their own pages live here instead. Find Work
+// lists jobs for freelancers to answer, which a client has no use for.
+const clientLinks: NavLink[] = [
+  { label: "nav.explore", href: "/" },
+  { label: "nav.hireCreatives", href: "/hire-creatives" },
+  { label: "nav.projects", href: "/projects" },
+  { label: "nav.myJobs", href: "/my-jobs" },
+]
+
+function isActiveLink(href: string, path: string) {
+  return href === "/" ? path === "/" : path.startsWith(href)
+}
+
+// WebKit draws its own clear button in search inputs, on top of the ⌘K hint.
+const SEARCH_INPUT =
+  "[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
 
 export function Header() {
   const { theme, setTheme } = useTheme()
@@ -26,8 +46,42 @@ export function Header() {
   const navigate = useNavigate()
   // Reading the router's location keeps the active-link underline correct after
   // a client-side navigation; window.location.pathname never re-rendered.
-  const currentPath = useLocation().pathname
+  const location = useLocation()
+  const currentPath = location.pathname
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const searchInputRef = React.useRef<HTMLInputElement>(null)
+
+  const navLinks = user?.role === RoleName.CLIENT ? clientLinks : publicLinks
+
+  // On the results page the box shows what was searched; elsewhere it starts
+  // empty. Keying the inputs by it resets them without syncing state by hand.
+  const searchedFor =
+    currentPath === "/search"
+      ? (new URLSearchParams(location.search).get("q") ?? "")
+      : ""
+
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const query = String(new FormData(event.currentTarget).get("q") ?? "")
+    if (!query.trim()) return
+
+    setIsMobileMenuOpen(false)
+    navigate(`/search?q=${encodeURIComponent(query.trim())}`)
+  }
+
+  // The ⌘K hint was decoration; now ⌘K (Ctrl+K elsewhere) focuses the box.
+  React.useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        searchInputRef.current?.focus()
+        searchInputRef.current?.select()
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
 
   const isDark =
     theme === "dark" ||
@@ -50,26 +104,39 @@ export function Header() {
             <Logo className="h-7 transition-transform group-hover:scale-105" />
           </Link>
 
-          <div className="relative hidden w-full max-w-md sm:block">
+          <form
+            role="search"
+            onSubmit={handleSearch}
+            className="relative hidden w-full max-w-md sm:block"
+          >
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
               <Search className="size-4" />
             </div>
             <Input
-              type="text"
+              key={searchedFor}
+              ref={searchInputRef}
+              type="search"
+              name="q"
+              enterKeyHint="search"
+              defaultValue={searchedFor}
+              aria-label={t("header.searchLabel")}
               placeholder={t("header.search")}
-              className="h-9 w-full rounded-lg border-border/70 bg-muted/40 pr-12 pl-9 text-sm transition-all placeholder:text-muted-foreground/70 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary"
+              className={cn(
+                "h-9 w-full rounded-lg border-border/70 bg-muted/40 pr-12 pl-9 text-sm transition-all placeholder:text-muted-foreground/70 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary",
+                SEARCH_INPUT
+              )}
             />
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
               <kbd className="rounded border border-border/60 bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground shadow-2xs">
                 ⌘K
               </kbd>
             </div>
-          </div>
+          </form>
         </div>
 
         <nav className="hidden items-center gap-6 md:flex lg:gap-7">
           {navLinks.map((link) => {
-            const isActive = currentPath === link.href
+            const isActive = isActiveLink(link.href, currentPath)
             return (
               <Link
                 key={link.href}
@@ -180,25 +247,40 @@ export function Header() {
 
       {isMobileMenuOpen && (
         <div className="border-t border-border/80 bg-background px-4 py-3 md:hidden">
-          <div className="relative mb-3 w-full">
+          <form
+            role="search"
+            onSubmit={handleSearch}
+            className="relative mb-3 w-full"
+          >
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
               <Search className="size-4" />
             </div>
             <Input
-              type="text"
+              key={searchedFor}
+              type="search"
+              name="q"
+              enterKeyHint="search"
+              defaultValue={searchedFor}
+              aria-label={t("header.searchLabel")}
               placeholder={t("header.searchShort")}
-              className="h-9 w-full rounded-lg border-border/70 bg-muted/40 pr-3 pl-9 text-sm placeholder:text-muted-foreground/70"
+              className={cn(
+                "h-9 w-full rounded-lg border-border/70 bg-muted/40 pr-3 pl-9 text-sm placeholder:text-muted-foreground/70",
+                SEARCH_INPUT
+              )}
             />
-          </div>
+          </form>
 
           <div className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                aria-current={currentPath === link.href ? "page" : undefined}
+                onClick={() => setIsMobileMenuOpen(false)}
+                aria-current={
+                  isActiveLink(link.href, currentPath) ? "page" : undefined
+                }
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  currentPath === link.href
+                  isActiveLink(link.href, currentPath)
                     ? "bg-primary/10 text-primary"
                     : "text-foreground hover:bg-muted"
                 }`}
